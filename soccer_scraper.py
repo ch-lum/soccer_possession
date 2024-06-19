@@ -80,11 +80,37 @@ class FBScrape:
         elif self.league == "Segunda":
             season = split(season)
             season_link = f"https://fbref.com/en/comps/17/{season}/schedule/{season}-Segunda-Division-Scores-and-Fixtures"
+        elif self.league == "Belgian Pro League":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/37/{season}/schedule/{season}-Belgian-Pro-League-Scores-and-Fixtures"
+        elif self.league == "2 Bundesliga":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/33/{season}/schedule/{season}-2-Bundesliga-Scores-and-Fixtures"
+        elif self.league == "Ligue 2":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/33/{season}/schedule/{season}-2-Bundesliga-Scores-and-Fixtures"
+        elif self.league == "Argentina":
+            season_link = f"https://fbref.com/en/comps/21/{season}/schedule/{season}-Liga-Profesional-Argentina-Scores-and-Fixtures"
+        elif self.league == "Serie B":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/18/{season}/schedule/{season}-Serie-B-Scores-and-Fixtures"
         elif self.league == "WSL":
             season = split(season)
             season_link = f"https://fbref.com/en/comps/189/{season}/schedule/{season}-Womens-Super-League-Scores-and-Fixtures"
         elif self.league == "NWSL":
             season_link = f"https://fbref.com/en/comps/182/{season}/schedule/{season}-NWSL-Scores-and-Fixtures"
+        elif self.league == "Liga F":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/230/{season}/schedule/{season}-Liga-F-Scores-and-Fixtures"
+        elif self.league == "A League":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/196/{season}/schedule/{season}-A-League-Women-Scores-and-Fixtures"
+        elif self.league == "Premiere Ligue":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/193/{season}/schedule/{season}-Premiere-Ligue-Scores-and-Fixtures"
+        elif self.league == "Frauen Bundesliga":
+            season = split(season)
+            season_link = f"https://fbref.com/en/comps/183/{season}/schedule/{season}-Frauen-Bundesliga-Scores-and-Fixtures"
 
         xml = self.scrape_website(season_link)
         if xml is None:
