@@ -85,6 +85,8 @@ class FBScrape:
             season_link = f"https://fbref.com/en/comps/189/{season}/schedule/{season}-Womens-Super-League-Scores-and-Fixtures"
         elif self.league == "NWSL":
             season_link = f"https://fbref.com/en/comps/182/{season}/schedule/{season}-NWSL-Scores-and-Fixtures"
+        else:
+            raise ValueError("Invalid league")
 
         xml = self.scrape_website(season_link)
         if xml is None:
@@ -168,7 +170,11 @@ class FBScrape:
             print(f"Possession not found for {url}")
             return None
 
-        row = [mid, tie, percent[winner], percent[1 - winner]]
+        try:
+            row = [mid, tie, percent[winner], percent[1 - winner]]
+        except KeyError:
+            print(f"key error for {url}")
+            return None
 
         return row
 
