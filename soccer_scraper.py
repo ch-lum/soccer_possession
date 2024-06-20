@@ -14,9 +14,16 @@ class FBScrape:
         self.finished = set()
 
     def scrape_website(self, url: str, attempts: int = 0):
+        if attempts > 5:
+            print("Failed on:", url)
+            return None
         # Send GET request to the website
-        response = requests.get(url)
-        time.sleep(3)
+        try:
+            response = requests.get(url)
+            time.sleep(3)
+        except requests.Timeout:
+            print("Timeout error. Retrying.")
+            return self.scrape_website(url, attempts + 1)
 
         # Check if the request was successful (status code 200)
         if response.status_code == 200:
@@ -28,91 +35,52 @@ class FBScrape:
             delay_seconds = (
                 5  # Default delay in case Retry-After header is not present or invalid
             )
+
             try:
                 delay_seconds = int(retry_after)
             except (ValueError, TypeError):
                 pass
             print(f"Received 429. Retrying after {delay_seconds} seconds.")
             time.sleep(delay_seconds)
-        elif attempts < 5:
+        else:
             print("Error:", response.status_code, "Trying again.")
             time.sleep(1)
             return self.scrape_website(url, attempts + 1)
-        else:
-            # Handle the request error
-            print("Error: ", response.status_code, "Failed on:", url)
-            return None
 
     def get_links(self, season: int):
         split = lambda year: str(year) + "-" + str(year + 1)
+        no_splits = {"MLS", "NWSL", "Brasileiro", "Argentina"}
+        season = split(season) if self.league not in no_splits else season
+        league_links = {
+            "Premier League": f"https://fbref.com/en/comps/9/{season}/schedule/{season}-Premier-League-Scores-and-Fixtures",
+            "La Liga": f"https://fbref.com/en/comps/12/{season}/schedule/{season}-La-Liga-Scores-and-Fixtures",
+            "Serie A": f"https://fbref.com/en/comps/11/{season}/schedule/{season}-Serie-A-Scores-and-Fixtures",
+            "Bundesliga": f"https://fbref.com/en/comps/20/{season}/schedule/{season}-Bundesliga-Scores-and-Fixturess",
+            "Ligue 1": f"https://fbref.com/en/comps/13/{season}/schedule/{season}-Ligue-1-Scores-and-Fixtures",
+            "Championship": f"https://fbref.com/en/comps/10/{season}/schedule/{season}-Championship-Scores-and-Fixtures",
+            "MLS": f"https://fbref.com/en/comps/22/{season}/schedule/{season}-Major-League-Soccer-Scores-and-Fixtures",
+            "Eredivisie": f"https://fbref.com/en/comps/23/{season}/schedule/{season}-Eredivisie-Scores-and-Fixtures",
+            "Brasileiro": f"https://fbref.com/en/comps/24/{season}/schedule/{season}-Serie-A-Scores-and-Fixtures",
+            "Primeira": f"https://fbref.com/en/comps/32/{season}/schedule/{season}-Primeira-Liga-Scores-and-Fixtures",
+            "Liga MX": f"https://fbref.com/en/comps/31/{season}/schedule/{season}-Liga-MX-Scores-and-Fixtures",
+            "Segunda": f"https://fbref.com/en/comps/17/{season}/schedule/{season}-Segunda-Division-Scores-and-Fixtures",
+            "Belgian Pro League": f"https://fbref.com/en/comps/37/{season}/schedule/{season}-Belgian-Pro-League-Scores-and-Fixtures",
+            "2 Bundesliga": f"https://fbref.com/en/comps/33/{season}/schedule/{season}-2-Bundesliga-Scores-and-Fixtures",
+            "Ligue 2": f"https://fbref.com/en/comps/33/{season}/schedule/{season}-2-Bundesliga-Scores-and-Fixtures",
+            "Argentina": f"https://fbref.com/en/comps/21/{season}/schedule/{season}-Liga-Profesional-Argentina-Scores-and-Fixtures",
+            "Serie B": f"https://fbref.com/en/comps/18/{season}/schedule/{season}-Serie-B-Scores-and-Fixtures",
+            "WSL": f"https://fbref.com/en/comps/230/{season}/schedule/{season}-Liga-F-Scores-and-Fixtures",
+            "NWSL": f"https://fbref.com/en/comps/182/{season}/schedule/{season}-NWSL-Scores-and-Fixtures",
+            "Liga F": f"https://fbref.com/en/comps/230/{season}/schedule/{season}-Liga-F-Scores-and-Fixtures",
+            "A League": f"https://fbref.com/en/comps/196/{season}/schedule/{season}-A-League-Women-Scores-and-Fixtures",
+            "Premiere Ligue": f"https://fbref.com/en/comps/193/{season}/schedule/{season}-Premiere-Ligue-Scores-and-Fixtures",
+            "Frauen Bundesliga": f"https://fbref.com/en/comps/183/{season}/schedule/{season}-Frauen-Bundesliga-Scores-and-Fixtures",
+        }
 
-        if self.league == "Premier League":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/9/{season}/schedule/{season}-Premier-League-Scores-and-Fixtures"
-        elif self.league == "La Liga":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/12/{season}/schedule/{season}-La-Liga-Scores-and-Fixtures"
-        elif self.league == "Serie A":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/11/{season}/schedule/{season}-Serie-A-Scores-and-Fixtures"
-        elif self.league == "Bundesliga":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/20/{season}/schedule/{season}-Bundesliga-Scores-and-Fixturess"
-        elif self.league == "Ligue 1":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/13/{season}/schedule/{season}-Ligue-1-Scores-and-Fixtures"
-        elif self.league == "Championship":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/10/{season}/schedule/{season}-Championship-Scores-and-Fixtures"
-        elif self.league == "MLS":
-            season_link = f"https://fbref.com/en/comps/22/{season}/schedule/{season}-Major-League-Soccer-Scores-and-Fixtures"
-        elif self.league == "Eredivisie":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/23/{season}/schedule/{season}-Eredivisie-Scores-and-Fixtures"
-        elif self.league == "Brasileiro":
-            season_link = f"https://fbref.com/en/comps/24/{season}/schedule/{season}-Serie-A-Scores-and-Fixtures"
-        elif self.league == "Primeira":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/32/{season}/schedule/{season}-Primeira-Liga-Scores-and-Fixtures"
-        elif self.league == "Liga MX":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/31/{season}/schedule/{season}-Liga-MX-Scores-and-Fixtures"
-        elif self.league == "Segunda":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/17/{season}/schedule/{season}-Segunda-Division-Scores-and-Fixtures"
-        elif self.league == "Belgian Pro League":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/37/{season}/schedule/{season}-Belgian-Pro-League-Scores-and-Fixtures"
-        elif self.league == "2 Bundesliga":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/33/{season}/schedule/{season}-2-Bundesliga-Scores-and-Fixtures"
-        elif self.league == "Ligue 2":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/33/{season}/schedule/{season}-2-Bundesliga-Scores-and-Fixtures"
-        elif self.league == "Argentina":
-            season_link = f"https://fbref.com/en/comps/21/{season}/schedule/{season}-Liga-Profesional-Argentina-Scores-and-Fixtures"
-        elif self.league == "Serie B":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/18/{season}/schedule/{season}-Serie-B-Scores-and-Fixtures"
-        elif self.league == "WSL":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/189/{season}/schedule/{season}-Womens-Super-League-Scores-and-Fixtures"
-        elif self.league == "NWSL":
-            season_link = f"https://fbref.com/en/comps/182/{season}/schedule/{season}-NWSL-Scores-and-Fixtures"
-        elif self.league == "Liga F":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/230/{season}/schedule/{season}-Liga-F-Scores-and-Fixtures"
-        elif self.league == "A League":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/196/{season}/schedule/{season}-A-League-Women-Scores-and-Fixtures"
-        elif self.league == "Premiere Ligue":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/193/{season}/schedule/{season}-Premiere-Ligue-Scores-and-Fixtures"
-        elif self.league == "Frauen Bundesliga":
-            season = split(season)
-            season_link = f"https://fbref.com/en/comps/183/{season}/schedule/{season}-Frauen-Bundesliga-Scores-and-Fixtures"
-        else:
-            raise ValueError("Invalid league")
+        season_link = league_links.get(self.league, None)
+        if season_link is None:
+            print(f"League {self.league} not found")
+            return None
 
         xml = self.scrape_website(season_link)
         if xml is None:
