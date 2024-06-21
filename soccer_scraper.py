@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import lxml
 import re
 import csv
+from typing import List, Optional, Union
 
 
 class FBScrape:
@@ -14,6 +15,16 @@ class FBScrape:
         self.finished = set()
 
     def scrape_website(self, url: str, attempts: int = 0):
+        """Scrape the website and return the response.
+
+        Args:
+            url (str): String of the website URL.
+            attempts (int, optional): Number of iterations it has already tried. Maxes at 3. Defaults to 0.
+
+        Returns:
+            Response: Returns the response of the website.
+        """
+
         if attempts > 5:
             print("Failed on:", url)
             return None
@@ -47,7 +58,15 @@ class FBScrape:
             time.sleep(1)
             return self.scrape_website(url, attempts + 1)
 
-    def get_links(self, season: int):
+    def find_root(self, season: int) -> Optional[str]:
+        """Get the root link for a given league's season.
+
+        Args:
+            season (int): year the season starts in.
+
+        Returns:
+            Optional[str]: Returns the root link for the league's season, None if not found.
+        """
         split = lambda year: str(year) + "-" + str(year + 1)
         no_splits = {"MLS", "NWSL", "Brasileiro", "Argentina"}
         season = split(season) if self.league not in no_splits else season
@@ -77,7 +96,18 @@ class FBScrape:
             "Frauen Bundesliga": f"https://fbref.com/en/comps/183/{season}/schedule/{season}-Frauen-Bundesliga-Scores-and-Fixtures",
         }
 
-        season_link = league_links.get(self.league, None)
+        return league_links.get(self.league, None)
+
+    def get_links(self, season: int) -> Optional[List[str]]:
+        """Get all the links based on the season's league
+
+        Args:
+            season (int): year the season starts in.
+
+        Returns:
+            Optional[List[str]]: List of links to the games in the season. None if there's an error.
+        """
+        season_link = self.find_root(season)
         if season_link is None:
             print(f"League {self.league} not found")
             return None
@@ -131,7 +161,15 @@ class FBScrape:
 
             csv_writer.writerow(row)
 
-    def scrape_game(self, url: str) -> list:
+    def scrape_game(self, url: str) -> Optional[List[any]]:
+        """For a game's url, access the webpage and scrape the possession data
+
+        Args:
+            url (str): url to the game's fbref page
+
+        Returns:
+            Optional[List[any]]: Row of a dataframe. None if the data is not found.
+        """
         xml = self.scrape_website(url)
         if xml is None:
             return None
@@ -172,7 +210,13 @@ class FBScrape:
 
         return row
 
-    def scrape_season(self, season: str) -> None:
+    def scrape_season(self, season: Union[str, int]) -> None:
+        """Uses the get_links and scrape_game functions to scrape an entire season
+
+        Args:
+            season (str): the season to scrape
+        """
+        season = int(season) if type(season) == str else season
         links = self.get_links(season)
 
         if links is None:
